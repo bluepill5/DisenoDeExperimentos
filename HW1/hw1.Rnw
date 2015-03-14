@@ -1,0 +1,74 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%  hw1.Rnw
+%   
+%  Autor: Alexandro Mayoral <https://github.com/bluepill5>  
+% 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\documentclass[a4paper]{scrartcl}
+
+% Librerías necesarias
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{enumerate}
+\usepackage{fullpage} % Maximiza el uso del espacio en la hoja.
+\usepackage[left=2cm,right=2cm,top=2cm,bottom=2cm]{geometry}
+\usepackage{dcolumn}
+\usepackage{rotating}
+\usepackage{float}
+\usepackage[section]{placeins}
+\usepackage{needspace}
+\usepackage{hyperref}
+\usepackage{setspace}
+\usepackage{pifont}
+\usepackage[table,xcdraw]{xcolor}
+\onehalfspacing
+
+\author{Alexandro Mayoral, Daniela Chávez y Gerardo Vazquez}
+\title{Tarea 1 Análisis y Diseño de Experimentos}
+\date{15/04/2015}
+
+\begin{document}
+\maketitle
+
+<<echo=FALSE, warning=FALSE, message=FALSE, results='hide'>>=
+# Librerías requeridas
+library(ggplot2)
+library(grid)
+# Para personalizar las gráficas (NO incluye leyendas)
+theme.b5.basic <- theme_grey(base_family = "mono") + # Font of the tittle
+    theme(text = element_text(face = "bold", size = 13, colour = "Black")) + # Font of the axes
+    theme(legend.key.size = unit(1, "cm")) +
+    theme(legend.text = element_text(size = 10))
+@
+
+
+\textbf{Problema 1}
+Considere una variable aleatoria $X \sim N(0.5, 1)$ determine la probabilidad de que $X>1$. Elabore la gráfica correspondiente.
+
+<<>>=
+# Obtenemos la probailidad de que X > 1
+pnorm(1, mean = 0.5, sd = sqrt(1), lower.tail = F)
+@
+
+<<echo=FALSE, fig.width=5, fig.height=4, fig.align='center'>>=
+a <- seq(-3,4,0.0001)
+b <- dnorm(a,.5,sqrt(1))
+sec<-data.frame(x=a,y=b)
+
+ggplot(data = sec, mapping = aes(x = x, y = y)) +
+    layer(geom = "line") +
+    layer(geom = "area", mapping = aes(x = ifelse(x>1, x, 0)),
+          geom_params = list(fill = "tomato", alpha = 0.5)) +
+    scale_y_continuous(limits = c(0, max(sec$y))) +
+    labs(title ="Función de densidad ~N(0.5,1)", x = "x", y = "f(x)") +
+    annotate("text", x = 1.5, y = 0.03, label = "P(x>1) = 0.308", 
+             size = 5) + 
+    theme.b5.basic
+@
+
+
+
+\end{document}
