@@ -37,6 +37,7 @@
 # Librerías requeridas
 library(ggplot2)
 library(grid)
+library(reshape2)
 # Para personalizar las gráficas (NO incluye leyendas)
 theme.b5.basic <- theme_grey(base_family = "mono") + # Font of the tittle
     theme(text = element_text(face = "bold", size = 13, colour = "Black")) + # Font of the axes
@@ -53,6 +54,8 @@ Considere una variable aleatoria $X \sim N(0.5, 1)$ determine la probabilidad de
 pnorm(1, mean = 0.5, sd = sqrt(1), lower.tail = F)
 @
 
+\noindent A continuación observamos la gráfica:
+
 <<echo=FALSE, fig.width=5, fig.height=4, fig.align='center'>>=
 a <- seq(-3,4,0.0001)
 b <- dnorm(a,.5,sqrt(1))
@@ -60,14 +63,95 @@ sec<-data.frame(x=a,y=b)
 
 ggplot(data = sec, mapping = aes(x = x, y = y)) +
     layer(geom = "line") +
-    layer(geom = "area", mapping = aes(x = ifelse(x>1, x, 0)),
-          geom_params = list(fill = "tomato", alpha = 0.5)) +
-    scale_y_continuous(limits = c(0, max(sec$y))) +
+#     layer(geom = "area", mapping = aes(x = ifelse(x>1, x, 0)),
+#           geom_params = list(fill = "tomato", alpha = 0.5)) +
+#     scale_y_continuous(limits = c(0, max(sec$y))) +
     labs(title ="Función de densidad ~N(0.5,1)", x = "x", y = "f(x)") +
     annotate("text", x = 1.5, y = 0.03, label = "P(x>1) = 0.308", 
              size = 5) + 
     theme.b5.basic
 @
+
+\newpage
+\textbf{Problema 2}
+Se utilizan dos máquinas para llenar botellas de plástico con un volumen neto de 16 onzas. El proceso de llenado se puede suponer normal. Los ingenieros del departamento de calidad sospechan que las dos máquinas llenan a diferente volumen, por lo que se realizó un experimento tomando una muestra al azar de 10 botellas llenadas por cada una de las dos máquinas.
+
+\begin{table}[h!]
+\centering
+\begin{tabular}[t]{|c|c|c|c|}
+\hline
+\multicolumn{2}{|c|}{\textbf{máquina 1}}&\multicolumn{2}{|c|}{\textbf{máquina 2}}\\
+\hline
+16.03&16.01&16.02&16.03\\
+16.04&15.96&15.97&16.04\\
+16.05&15.98&15.96&16.02\\
+16.05&16.02&16.01&16.01\\
+16.02&15.99&15.99&16.00\\
+\hline
+\end{tabular}
+\end{table}
+
+\begin{enumerate}[a)]
+  \item Pruebe la hipótesis de que el promedio de llenado de las dos máquinas es el mismo vs. es diferente.  Use $\alpha=0.05$. Primero suponiendo que las varianzas son homogéneas y después suponiendo que no son homogéneas.
+  \item Calcule un intervalo del 95\% de confianza para la diferencia de las  medias de volumen de llenado de las máquinas.
+\end{enumerate}
+
+\noindent Veamos un boxplot de los datos por máquina:
+
+<<echo=FALSE, fig.height=4, fig.width=5, fig.align='center'>>=
+# Guardamos los volúmenes capturadas de las dos máquinas
+vol <- c(16.03, 16.01, 16.04, 15.96, 16.05, 15.98, 16.05, 16.02, 16.02,
+         15.99, 16.02, 16.03, 15.97, 16.04, 15.96, 16.02, 16.01, 16.01, 
+         15.99, 16.00)
+# Asignamos los valores a un data.frame
+datos <- data.frame(trat = factor(rep(c("máquina 1","máquina 2"), 
+                                      each = 10)), vol)
+n1 <- 10
+n2 <- 10
+# Gráficamos un boxplot de los datos
+ggplot(datos, aes(x = trat, y = vol, fill = trat)) + 
+    geom_boxplot() + 
+    stat_summary(fun.y = mean, geom = "point", shape = 5, size = 4) + 
+    stat_boxplot(geom ="errorbar") +
+    guides(fill = FALSE) + # colour, fill, shape
+    labs(title = "Boxplot por máquina", x = "", y = "") + 
+    theme.b5.basic
+@
+
+<<warning=FALSE>>=
+# Pruebe la hipótesis de que el promedio de llenado de las dos máquinas 
+# es el mismo vs. es diferente
+# Bajo el supuesto de varianzas iguales:
+# Método largo
+# Manipulamos los datos para los cálculos
+datos <- data.frame(maquina1=subset(datos, trat == "máquina 1")[, "vol"],
+                    maquina2=subset(datos, trat == "máquina 2")[, "vol"])
+# Cálculo de las medias
+colMeans(datos)
+# Cálculo de la diferencia de medias
+dif <- as.numeric(colMeans(datos)[1] - colMeans(datos)[2])
+S2_1 <- var(datos[, 1])
+S2_2 <- var(datos[, 2])
+S2_p <- ((n1 - 1) * S2_1 + (n2 - 1) * S2_2) / (n1 + n2 - 2)
+
+t_0 <- dif/(sqrt(S2_p*(1/n1 + 1/n2)));t_0
+
+# Región de rechazo
+alpha <- 0.05
+gl <- n1 + n2 - 2
+t <- qt(1 - (alpha/2), gl)
+# P-value de 2 colas
+pt(t_0, gl, lower.tail = FALSE) * 2
+
+# Método largo
+t.test(datos[, 1], datos[, 2])
+
+# Bajo el supuesto de varianzas diferentes:
+# Método largo
+
+@
+
+Por lo que bajo la hipótesis $H_0: \mu_1 = \mu_2 (t= 0.7989,p>0.05)$ y asumiendo varianzas iguales, no existe evidencia significativa para rechazar que el promedio del llenado de botellas de la máquina 1 y 2 son iguales.
 
 
 
