@@ -1,4 +1,4 @@
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %  hw1.Rnw
 %   
 %  Autor: Alexandro Mayoral <https://github.com/bluepill5>  
@@ -200,7 +200,7 @@ Se utilizan dos máquinas para llenar botellas de plástico con un volumen neto 
 ## 
 ## 	Welch Two Sample t-test
 ## 
-## data:  datos[, 1] and datos[, 2]
+## data:  x and datos[, 2]
 ## t = 0.7989, df = 17.49, p-value = 0.435
 ## alternative hypothesis: true difference in means is not equal to 0
 ## 95 percent confidence interval:
@@ -250,7 +250,7 @@ Se utilizan dos máquinas para llenar botellas de plástico con un volumen neto 
 ## 
 ## 	Welch Two Sample t-test
 ## 
-## data:  datos[, 1] and datos[, 2]
+## data:  x and datos[, 2]
 ## t = 0.7989, df = 17.49, p-value = 0.435
 ## alternative hypothesis: true difference in means is not equal to 0
 ## 95 percent confidence interval:
@@ -406,7 +406,109 @@ Entonces sabemo que valores grandes de $F$ llevan a rechazar la hipótesis de nu
 \end{knitrout}
 En este caso $F = 0.5655 < F_{t-1, n-t}^{0.05} = 4.002)$ por lo que tampoco tenemos evidencia para rechazar la hipótesis nula a una significancia del $5\%$.
 
+\newpage
+\textbf{Problema 4}
+En un diseño de experimetos unifactorial de efectos fijos completamente al azar, se tiene 5 tratamientos con 5 repeticiones cada uno. El estadìstico de prueba $F_0$ es igual a 3.5. Elabore la gráfica que muestre las regiones de rechazo con $\alpha = 0.05$ y con $\alpha = 0.01$; ubique la posiciòn del estadìstico $F_0$, analice y concluya si existe evidencia para determinar la igualdad de medias de los tratamientos (tanto para $\alpha = 0.05$ como para $\alpha = 0.01$).
+
+\newpage
+\textbf{Problema 5}
+Los siguiente datos muestran las medidas de hemoglobina (gramos por 100ml) en la sangre de 40 ejemplares de una especie de truchas marrones. Las truchas se haían dividido al azar en cuatro grupos de 10 y cada grupo se había asignado, también al azar, a un criadero de cuatro diferentes. En cada criadero se añadía a la dieta de los peces una cantidad distinta de sulfamerazina por cada cien libras de comida. En concreto: 0, 5, 10 y 15 gramos. Las mediciones de hemoglobina se tomaron después de 35 días.
+
+Se pide que:
+
+\begin{itemize}
+  \item Elabore el modelo de diseño de experimentos correspondiente, haciendo explícitos los elementos que lo componen (variable respuesta, factores, supuestos, unidad experimental, ... etc.)
+\end{itemize}
+
+\begin{itemize}
+  \item Elabore la gráfica de caja tratamientos-hemgoglobina, analícela y determine si existe evidencia visual para determinar la igualdad de medias de los tratamientos.
+\end{itemize}
+
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}
+
+{\centering \includegraphics[width=\maxwidth]{figure/unnamed-chunk-11} 
+
+}
 
 
+
+\end{knitrout}
+
+\begin{itemize}
+  \item Construya la tabla ANOVA, analícela y concluya ($\alpha = 0.05$)
+\end{itemize}
+
+\begin{itemize}
+  \item Determine qué tratamientos tienen efectos estadísticamente iguales
+\end{itemize}
+
+\begin{itemize}
+  \item Construya las gráficas de los residuos necesarias para verificar los supuestos de homocedasticidad y normalidad. Utilice la prueba de Bartlett para verificar el supuesto de homogeneidad de varianzas 
+\end{itemize}
+
+\newpage
+\textbf{Problema 6}
+Un estudio veterinario busca determinar si el sexo tiene efecto en ele peso de los perros, para este estudio se cuenta con lote de 20 perros schnauzer adultos con los siguientes datos:
+
+
+Se pide que:
+
+\begin{itemize}
+  \item Elabore el modelo de diseño de experimentos correspondiente, haciendo explicítos los elementos que lo componen (variable respuesta, factores, supuestos, unidad experimental, ..., etc.)
+\end{item}
+
+\begin{itemize}
+  \item Elaborela gráfica de tratamientos-peso, analícela y determine si existe evidencia visual para determinar la igualda de los tratamientos
+\end{item}
+
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}
+
+{\centering \includegraphics[width=\maxwidth]{figure/unnamed-chunk-12} 
+
+}
+
+
+
+\end{knitrout}
+
+\begin{itemize}
+  \item Construya la tabla ANOVA, analícela y concluya ($\alpha = 0.05$)
+\end{itemize}
+
+\begin{itemize}
+  \item Determine qué tratamientos tienen efectos estadísticamente iguales
+\end{itemize}
+
+\begin{itemize}
+  \item Construya las gráficas de los residuos necesarias para verificar los supuestos de homocedasticidad y normalidad. Utilice la prueba de Bartlett para verificar el supuesto de homogeneidad de varianzas 
+\end{itemize}
+
+\newpage
+\textbf{Problema 7}
+Utilizando los datos \emph{KenyaFinches} contenidos en la librería \emph{abd} del programa R, determine si la subespecie de los pinzones es un factor determinante en la longitud del pico de los pinzones.
+
+Se pide que:
+
+\begin{itemize}
+  \item Elabore el modelo de diseño de experimentos correspondiente, haciendo explicítos los elementos que lo componen (variable respuesta, factores, supuestos, unidad experimental, ..., etc.)
+\end{item}
+
+\begin{itemize}
+  \item Elaborela gráfica de tratamientos-peso, analícela y determine si existe evidencia visual para determinar la igualda de los tratamientos
+\end{item}
+
+\begin{itemize}
+  \item Construya la tabla ANOVA, analícela y concluya ($\alpha = 0.05$)
+\end{itemize}
+
+\begin{itemize}
+  \item Determine qué tratamientos tienen efectos estadísticamente iguales
+\end{itemize}
+
+\begin{itemize}
+  \item Construya las gráficas de los residuos necesarias para verificar los supuestos de homocedasticidad y normalidad. Utilice la prueba de Bartlett para verificar el supuesto de homogeneidad de varianzas 
+\end{itemize}
 
 \end{document}

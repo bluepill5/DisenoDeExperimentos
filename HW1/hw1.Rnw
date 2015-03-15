@@ -1,4 +1,4 @@
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %  hw1.Rnw
 %   
 %  Autor: Alexandro Mayoral <https://github.com/bluepill5>  
@@ -40,11 +40,23 @@
 library(ggplot2)
 library(grid)
 library(reshape2)
+library(abd)
 # Para personalizar las gráficas (NO incluye leyendas)
 theme.b5.basic <- theme_grey(base_family = "mono") + # Font of the tittle
     theme(text = element_text(face = "bold", size = 13, colour = "Black")) + # Font of the axes
     theme(legend.key.size = unit(1, "cm")) +
     theme(legend.text = element_text(size = 10))
+# Función para gráficar el boxplot
+myBoxplot <- function(datos, factor, variable, title) {
+    ggplot(datos, aes_string(x = factor, y = variable, fill = factor)) + 
+        geom_boxplot(lwd = 1.5) + 
+        stat_summary(fun.y = mean, geom = "point", shape = 5, size = 4) + 
+        stat_boxplot(geom ="errorbar") +
+        guides(fill = FALSE) + # colour, fill, shape
+        labs(title = title, x = "", y = "") + 
+        theme.b5.basic
+}
+
 @
 
 
@@ -111,13 +123,7 @@ datos <- data.frame(trat = factor(rep(c("máquina 1","máquina 2"),
 n1 <- 10
 n2 <- 10
 # Gráficamos un boxplot de los datos
-ggplot(datos, aes(x = trat, y = vol, fill = trat)) + 
-    geom_boxplot() + 
-    stat_summary(fun.y = mean, geom = "point", shape = 5, size = 4) + 
-    stat_boxplot(geom ="errorbar") +
-    guides(fill = FALSE) + # colour, fill, shape
-    labs(title = "Boxplot por máquina", x = "", y = "") + 
-    theme.b5.basic
+myBoxplot(datos, "trat", "vol", "Boxplot por máquina")
 @
 
 <<warning=FALSE>>=
@@ -258,7 +264,109 @@ qf(1 - alpha, df1= 3, df2 = 92)
 @
 En este caso $F = 0.5655 < F_{t-1, n-t}^{0.05} = 4.002)$ por lo que tampoco tenemos evidencia para rechazar la hipótesis nula a una significancia del $5\%$.
 
+\newpage
+\textbf{Problema 4}
+En un diseño de experimetos unifactorial de efectos fijos completamente al azar, se tiene 5 tratamientos con 5 repeticiones cada uno. El estadìstico de prueba $F_0$ es igual a 3.5. Elabore la gráfica que muestre las regiones de rechazo con $\alpha = 0.05$ y con $\alpha = 0.01$; ubique la posiciòn del estadìstico $F_0$, analice y concluya si existe evidencia para determinar la igualdad de medias de los tratamientos (tanto para $\alpha = 0.05$ como para $\alpha = 0.01$).
+
+\newpage
+\textbf{Problema 5}
+Los siguiente datos muestran las medidas de hemoglobina (gramos por 100ml) en la sangre de 40 ejemplares de una especie de truchas marrones. Las truchas se haían dividido al azar en cuatro grupos de 10 y cada grupo se había asignado, también al azar, a un criadero de cuatro diferentes. En cada criadero se añadía a la dieta de los peces una cantidad distinta de sulfamerazina por cada cien libras de comida. En concreto: 0, 5, 10 y 15 gramos. Las mediciones de hemoglobina se tomaron después de 35 días.
+
+Se pide que:
+
+\begin{itemize}
+  \item Elabore el modelo de diseño de experimentos correspondiente, haciendo explícitos los elementos que lo componen (variable respuesta, factores, supuestos, unidad experimental, ... etc.)
+\end{itemize}
+
+\begin{itemize}
+  \item Elabore la gráfica de caja tratamientos-hemgoglobina, analícela y determine si existe evidencia visual para determinar la igualdad de medias de los tratamientos.
+\end{itemize}
+
+<<echo=FALSE, fig.height=4, fig.width=5, fig.align='center'>>=
+hemo <- c(6.7, 7.8, 5.5, 8.4, 7.0, 7.8, 8.6, 7.4, 5.8, 7.0, 9.9, 8.4,10.4
+          ,9.3, 10.7, 11.9, 7.1, 6.4, 8.6, 10.6, 10.4, 8.1, 10.6, 8.7, 
+          10.7, 9.1, 8.8, 8.1, 7.8, 8.0, 9.9, 9.3, 7.2, 7.8, 9.3, 10.2, 
+          8.7, 8.6, 9.3, 7.2)
+trat <- c(rep(0, 10), rep(5, 10), rep(10, 10), rep(15,10))
+trat <- as.factor(trat)
+peces <- data.frame(trat,hemo)
+# Gráficamos un boxplot de los datos
+myBoxplot(peces, "trat", "hemo", "Boxplot por tratamiento")
+@
+
+\begin{itemize}
+  \item Construya la tabla ANOVA, analícela y concluya ($\alpha = 0.05$)
+\end{itemize}
+
+\begin{itemize}
+  \item Determine qué tratamientos tienen efectos estadísticamente iguales
+\end{itemize}
+
+\begin{itemize}
+  \item Construya las gráficas de los residuos necesarias para verificar los supuestos de homocedasticidad y normalidad. Utilice la prueba de Bartlett para verificar el supuesto de homogeneidad de varianzas 
+\end{itemize}
+
+\newpage
+\textbf{Problema 6}
+Un estudio veterinario busca determinar si el sexo tiene efecto en ele peso de los perros, para este estudio se cuenta con lote de 20 perros schnauzer adultos con los siguientes datos:
 
 
+Se pide que:
+
+\begin{itemize}
+  \item Elabore el modelo de diseño de experimentos correspondiente, haciendo explicítos los elementos que lo componen (variable respuesta, factores, supuestos, unidad experimental, ..., etc.)
+\end{item}
+
+\begin{itemize}
+  \item Elaborela gráfica de tratamientos-peso, analícela y determine si existe evidencia visual para determinar la igualda de los tratamientos
+\end{item}
+
+<<echo=FALSE, fig.height=4, fig.width=5, fig.align='center'>>=
+peso <- c(9.632, 9.086, 8.67, 8.51, 9.084, 8.797, 9.188, 9.215, 9.099,
+          9.851, 8.426, 8.532, 7.724, 8.467, 7.477, 7.503, 7.391, 8.379,
+          7.638, 8.528)
+perros <- data.frame(sexo = factor(rep(c("Macho","Hembra"),
+                                       each = 10)), peso)
+# Gráficamos un boxplot de los datos
+myBoxplot(perros, "sexo", "peso", "Boxplot por sexo")
+@
+
+\begin{itemize}
+  \item Construya la tabla ANOVA, analícela y concluya ($\alpha = 0.05$)
+\end{itemize}
+
+\begin{itemize}
+  \item Determine qué tratamientos tienen efectos estadísticamente iguales
+\end{itemize}
+
+\begin{itemize}
+  \item Construya las gráficas de los residuos necesarias para verificar los supuestos de homocedasticidad y normalidad. Utilice la prueba de Bartlett para verificar el supuesto de homogeneidad de varianzas 
+\end{itemize}
+
+\newpage
+\textbf{Problema 7}
+Utilizando los datos \emph{KenyaFinches} contenidos en la librería \emph{abd} del programa R, determine si la subespecie de los pinzones es un factor determinante en la longitud del pico de los pinzones.
+
+Se pide que:
+
+\begin{itemize}
+  \item Elabore el modelo de diseño de experimentos correspondiente, haciendo explicítos los elementos que lo componen (variable respuesta, factores, supuestos, unidad experimental, ..., etc.)
+\end{item}
+
+\begin{itemize}
+  \item Elaborela gráfica de tratamientos-peso, analícela y determine si existe evidencia visual para determinar la igualda de los tratamientos
+\end{item}
+
+\begin{itemize}
+  \item Construya la tabla ANOVA, analícela y concluya ($\alpha = 0.05$)
+\end{itemize}
+
+\begin{itemize}
+  \item Determine qué tratamientos tienen efectos estadísticamente iguales
+\end{itemize}
+
+\begin{itemize}
+  \item Construya las gráficas de los residuos necesarias para verificar los supuestos de homocedasticidad y normalidad. Utilice la prueba de Bartlett para verificar el supuesto de homogeneidad de varianzas 
+\end{itemize}
 
 \end{document}
