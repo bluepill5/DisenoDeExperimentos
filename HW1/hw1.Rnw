@@ -134,7 +134,7 @@ S2_1 <- var(datos[, 1])
 S2_2 <- var(datos[, 2])
 S2_p <- ((n1 - 1) * S2_1 + (n2 - 1) * S2_2) / (n1 + n2 - 2)
 
-t_0 <- dif/(sqrt(S2_p*(1/n1 + 1/n2)));t_0
+t_0 <- dif/(sqrt(S2_p*(1/n1 + 1/n2))); t_0
 
 # Región de rechazo
 alpha <- 0.05
@@ -143,15 +143,79 @@ t <- qt(1 - (alpha/2), gl)
 # P-value de 2 colas
 pt(t_0, gl, lower.tail = FALSE) * 2
 
-# Método largo
+# Método corto
 t.test(datos[, 1], datos[, 2])
-
-# Bajo el supuesto de varianzas diferentes:
-# Método largo
-
 @
 
-Por lo que bajo la hipótesis $H_0: \mu_1 = \mu_2 (t= 0.7989,p>0.05)$ y asumiendo varianzas iguales, no existe evidencia significativa para rechazar que el promedio del llenado de botellas de la máquina 1 y 2 son iguales.
+\noindent Por lo que bajo la hipótesis $H_0: \mu_1 = \mu_2 (t= 0.7989,p>0.05)$ y asumiendo varianzas iguales, no existe evidencia significativa para rechazar que el promedio del llenado de botellas de la máquina 1 y 2 son iguales. Ahora veamos el caso cuando no consideramos que las varianzas son homogéneas.
+
+\newpage
+
+<<warning=FALSE>>=
+# Bajo el supuesto de varianzas diferentes:
+# Método largo
+# t welch
+tw <- dif / (sqrt(S2_1/n1 + S2_2/n2)); tw
+#región de rechazo
+gl_tw <- (S2_1/n1 + S2_2/n2)**2 / (((S2_1/n1)**2/(n1 - 1)) + ((S2_2/n2)**2/(n2-1)))
+t2 <- qt(1-(alpha/2), gl_tw); t2
+
+# P-value
+pt(tw, gl_tw, lower.tail = FALSE) * 2
+
+# Método Corto
+t.test(datos[, 1], datos[, 2], var.equal=F)
+@
+
+\noindent Por lo qué observamos que tampoco existe evidencia para rechazar la hipótesis nula ($H_0: \mu_1 = \mu_2 (t= 0.7989,p>0.05)$), asumiendo que se tienen varianzas distintas. A continuación mostramos la prueba F para evaluar la exitencia de homocedasticidad
+
+<<warning=FALSE>>=
+var.test(datos[, 1], datos[, 2])
+@
+
+\noindent Por lo que no hay evidencia para rechazar la hipótesis de homocedasticidad a un nivel de significancia del $0.05$.\\
+
+\noindent Ahora calculamos los intervalos del $95\%$ de confianza para la diferencia de medias:
+
+<<warning=FALSE>>=
+# Bajo el supuesto de homocedasticidad
+ic_vi <- cbind(dif - t * sqrt(S2_p*(1/n1 + 1/n2)),
+               dif + t * sqrt(S2_p*(1/n1 + 1/n2)))
+colnames(ic_vi) <- cbind("límite inferior","límite superior");ic_vi
+# Amplitud del intervalo
+diff(as.vector(ic_vi))
+# Bajo el supuesto de no homocedasticidad
+ic_vd <- cbind(dif - t2 * sqrt(S2_1/n1 + S2_2/n2),
+               dif + t2 * sqrt(S2_1/n1 + S2_2/n2))
+colnames(ic_vd) <- cbind("límite inferior","límite superior");ic_vd
+# Amplitud del intervalo
+diff(as.vector(ic_vd))
+@
+
+\noindent Por lo anterior vemos que el intervalo bajo el supuesto de homocedasticidad es más pequeño, además ambos intervalos contienen al cero, por lo que tenemos una confianza del $95\%$ de que no existe diferencia en el promedio de llenado de botellas en ambas máquinas. Es importante también mencionar que uno de los puestos que se usó al realizar los contrastes de hipótesis fue el de normalidad de los datos, por lo qué se debería aplicar una prueba para evaluar este supuesto.
+
+\newpage
+\textbf{Problema 3}
+Considere un diseño de experimento unifactorial (efectos fijos) de 4 tratamientos donde se tienen un total de 24 unidades experimentales y conteste lo siguiente:
+
+\begin{itemize}
+  \item Complete la siguiente tabla ANOVA
+\end{itemize}
+
+\begin{itemize}
+  \item Determine el valor $\hat{\sigma^2}$
+\end{itemize}
+
+\begin{itemize}
+  \item Con $\alpha = 0.05$ se rechaza o no la hipótesis de igualdad de medias?
+\end{itemize}
+
+\begin{itemize}
+  \item Con $\alpha = 0.01$ se rechaza o no la hipótesis de igualdad de medias?
+\end{itemize}
+
+
+
 
 
 
