@@ -23,7 +23,9 @@
 \usepackage{hyperref}
 \usepackage{setspace}
 \usepackage{pifont}
+\usepackage{adjustbox}
 \usepackage[table,xcdraw]{xcolor}
+\usepackage{graphics}
 \onehalfspacing
 
 \author{Alexandro Mayoral, Daniela Chávez y Gerardo Vazquez}
@@ -199,22 +201,62 @@ diff(as.vector(ic_vd))
 Considere un diseño de experimento unifactorial (efectos fijos) de 4 tratamientos donde se tienen un total de 24 unidades experimentales y conteste lo siguiente:
 
 \begin{itemize}
-  \item Complete la siguiente tabla ANOVA
+  \item Complete la siguiente tabla ANOVA:
 \end{itemize}
+
+\begin{table}[h]
+\centering
+\begin{adjustbox}{max width=\textwidth}
+\begin{tabular}{|l|c|ccc}
+\hline
+\rowcolor[HTML]{C0C0C0} 
+\textbf{FV} & \multicolumn{1}{l|}{\cellcolor[HTML]{C0C0C0}\textbf{g.l.}} & \multicolumn{1}{l|}{\cellcolor[HTML]{C0C0C0}\textbf{S.C.}} & \multicolumn{1}{l|}{\cellcolor[HTML]{C0C0C0}\textbf{C.M.}} & \multicolumn{1}{l|}{\cellcolor[HTML]{C0C0C0}\textbf{F}} \\ \hline
+\cellcolor[HTML]{C0C0C0}\textbf{Modelo} &  & \multicolumn{1}{c|}{} & \multicolumn{1}{c|}{} & \multicolumn{1}{c|}{0.5655} \\ \hline
+\cellcolor[HTML]{C0C0C0}\textbf{Error} &  & \multicolumn{1}{c|}{} & \multicolumn{1}{c|}{16.02} &  \\ \cline{1-4}
+\cellcolor[HTML]{C0C0C0}\textbf{Total} &  &  &  &  \\ \cline{1-2}
+\end{tabular}
+\end{adjustbox}
+\end{table}
+
+\noindent La tabla la podemos completar de la siguiente forma:\\
+
+\begin{table}[h]
+\centering
+\begin{adjustbox}{max width=\textwidth}
+\begin{tabular}{|l|c|c|cc}
+\hline
+\rowcolor[HTML]{C0C0C0} 
+\textbf{FV} & \textbf{g.l.} & \textbf{S.C.} & \multicolumn{1}{c|}{\cellcolor[HTML]{C0C0C0}\textbf{C.M.}} & \multicolumn{1}{c|}{\cellcolor[HTML]{C0C0C0}\textbf{F}} \\ \hline
+\cellcolor[HTML]{C0C0C0}\textbf{Modelo} & t - 1 = 4 - 1 = 3 & SSt = CMt * (t - 1) = 27.178 & \multicolumn{1}{c|}{CMt = F * CME = 9.059} & \multicolumn{1}{c|}{F = CMt / CME = 0.5655} \\ \hline
+\cellcolor[HTML]{C0C0C0}\textbf{Error} & n - t = 96 - 4 = 92 & SSE = CME * (n - t) = 16.02 * 92 = 1473.84 & \multicolumn{1}{c|}{CME = 16.02} &  \\ \cline{1-4}
+\cellcolor[HTML]{C0C0C0}\textbf{Total} & n - 1 = 96 -1 = 95 & SStotal = SSt + SSE &  &  \\ \cline{1-3}
+\end{tabular}
+\end{adjustbox}
+\end{table}
 
 \begin{itemize}
   \item Determine el valor $\hat{\sigma^2}$
 \end{itemize}
+De la tabla sabemos que $CME = \hat{\sigma^2} = 16.02$
 
 \begin{itemize}
   \item Con $\alpha = 0.05$ se rechaza o no la hipótesis de igualdad de medias?
 \end{itemize}
+<<>>=
+alpha <- 0.05
+qf(1 - alpha, df1= 3, df2 = 92)
+@
+Entonces sabemo que valores grandes de $F$ llevan a rechazar la hipótesis de nula de igualdad de medias, pero como $F = 0.5655 < F_{t-1, n-t}^{0.05} = 2.704)$ no tenemos evidencia para rechzar la hipótesis nula a una significancia del $5\%$.
+
 
 \begin{itemize}
   \item Con $\alpha = 0.01$ se rechaza o no la hipótesis de igualdad de medias?
 \end{itemize}
-
-
+<<>>=
+alpha <- 0.01
+qf(1 - alpha, df1= 3, df2 = 92)
+@
+En este caso $F = 0.5655 < F_{t-1, n-t}^{0.05} = 4.002)$ por lo que tampoco tenemos evidencia para rechazar la hipótesis nula a una significancia del $5\%$.
 
 
 
