@@ -30,7 +30,7 @@
 
 \author{Alexandro Mayoral, Daniela Chávez y Gerardo Vazquez}
 \title{Tarea 1 Análisis y Diseño de Experimentos}
-\date{15/04/2015}
+\date{15/03/2015}
 
 \begin{document}
 \maketitle
@@ -41,20 +41,45 @@ library(ggplot2)
 library(grid)
 library(reshape2)
 library(abd)
+library(nortest)
+# Cragamos los datos necesarios
+data(KenyaFinches)
+attach(KenyaFinches)
 # Para personalizar las gráficas (NO incluye leyendas)
 theme.b5.basic <- theme_grey(base_family = "mono") + # Font of the tittle
     theme(text = element_text(face = "bold", size = 13, colour = "Black")) + # Font of the axes
     theme(legend.key.size = unit(1, "cm")) +
     theme(legend.text = element_text(size = 10))
 # Función para gráficar el boxplot
-myBoxplot <- function(datos, factor, variable, title) {
+myBoxplot <- function(datos, factor, variable, title, xlab = "", ylab = "") {
     ggplot(datos, aes_string(x = factor, y = variable, fill = factor)) + 
         geom_boxplot(lwd = 1.5) + 
         stat_summary(fun.y = mean, geom = "point", shape = 5, size = 4) + 
         stat_boxplot(geom ="errorbar") +
         guides(fill = FALSE) + # colour, fill, shape
-        labs(title = title, x = "", y = "") + 
+        labs(title = title, x = xlab, y = ylab) + 
         theme.b5.basic
+}
+# Función para gráficar un QQPlot
+ggqnorm <- function(lm) {
+    y <- quantile(lm$resid[!is.na(lm$resid)], c(0.25, 0.75))
+    x <- qnorm(c(0.25, 0.75))
+    slope <- diff(y) / diff(x)
+    int <- y[1L] - slope * x[1L]
+    p <- ggplot(lm, aes(sample = .resid)) +
+        stat_qq(alpha = 0.5) +
+        geom_abline(slope = slope, 
+                    intercept = int, 
+                    color = "#CD2626") + 
+        labs(title = "QQnorm-plot",
+             x = "Teorícos",
+             y = "Muestrales") + 
+        theme.b5.basic
+    p
+}
+# Función para crear un grid con varios gráficos
+vplayout <- function(x, y) {
+    viewport(layout.pos.row = x, layout.pos.col = y)
 }
 
 @
@@ -68,21 +93,19 @@ Considere una variable aleatoria $X \sim N(0.5, 1)$ determine la probabilidad de
 pnorm(1, mean = 0.5, sd = sqrt(1), lower.tail = F)
 @
 
-\noindent A continuación observamos la gráfica:
+\noindent A continuación observamos la gráfica:\\
 
-<<echo=FALSE, fig.width=5, fig.height=4, fig.align='center'>>=
-a <- seq(-3,4,0.0001)
-b <- dnorm(a,.5,sqrt(1))
-sec<-data.frame(x=a,y=b)
+<<echo=FALSE, fig.width=7, fig.height=4, fig.align='center'>>=
+p <- pnorm(1, mean = 0.5, sd = sqrt(1), lower.tail = F)
 
-ggplot(data = sec, mapping = aes(x = x, y = y)) +
-    layer(geom = "line") +
-#     layer(geom = "area", mapping = aes(x = ifelse(x>1, x, 0)),
-#           geom_params = list(fill = "tomato", alpha = 0.5)) +
-#     scale_y_continuous(limits = c(0, max(sec$y))) +
+ggplot(data.frame(x = c(-4, 4)), aes(x)) + 
+    stat_function(fun = function(x) dnorm(x, mean = 0.5, sd = 1), 
+                  size = 1) + 
+    geom_vline(aes(xintercept = p), color = "#8B0000", 
+               linetype = "dashed", size = 1) + 
     labs(title ="Función de densidad ~N(0.5,1)", x = "x", y = "f(x)") +
-    annotate("text", x = 1.5, y = 0.03, label = "P(x>1) = 0.308", 
-             size = 5) + 
+    annotate("text", x = 1.3, y = 0.1, label = "P(x>1) = 0.308", 
+             size = 5, colour = "#8B0000") + 
     theme.b5.basic
 @
 
@@ -266,11 +289,60 @@ En este caso $F = 0.5655 < F_{t-1, n-t}^{0.05} = 4.002)$ por lo que tampoco tene
 
 \newpage
 \textbf{Problema 4}
-En un diseño de experimetos unifactorial de efectos fijos completamente al azar, se tiene 5 tratamientos con 5 repeticiones cada uno. El estadìstico de prueba $F_0$ es igual a 3.5. Elabore la gráfica que muestre las regiones de rechazo con $\alpha = 0.05$ y con $\alpha = 0.01$; ubique la posiciòn del estadìstico $F_0$, analice y concluya si existe evidencia para determinar la igualdad de medias de los tratamientos (tanto para $\alpha = 0.05$ como para $\alpha = 0.01$).
+En un diseño de experimetos unifactorial de efectos fijos completamente al azar, se tiene 5 tratamientos con 5 repeticiones cada uno. El estadístico de prueba $F_0$ es igual a 3.5. Elabore la gráfica que muestre las regiones de rechazo con $\alpha = 0.05$ y con $\alpha = 0.01$; ubique la posición del estadístico $F_0$, analice y concluya si existe evidencia para determinar la igualdad de medias de los tratamientos (tanto para $\alpha = 0.05$ como para $\alpha = 0.01$).\\
+
+Como tenemos 5 tratamientos y 5 repeticiones entonces tenemos que: $t = 5$, $r = 5$ y $n = 25$. Por lo que tenemos que obtener $F_{t-1, n-t}^{1 - \alpha}$, es decir, $F_{4, 20}^{0.95}$ y $F_{4, 20}^{0.99}$, donde $H_0: \mu_1 = \mu_2 ... =\mu_5$, para comparar con nuestro estadístico de prueba: 
+
+<<>>=
+# Significancia del 5%
+F95 <- qf(0.95, df1 = 4, df2 = 20); F95
+# Significancia del 1%
+F99 <- qf(0.99, df1 = 4, df2 = 20); F99
+@
+
+<<echo=FALSE, fig.width=7, fig.height=4, fig.align='center'>>=
+# Gráficas para ubicar F0
+ggplot(data.frame(x = c(0, 6)), aes(x)) + 
+    stat_function(fun = function(x) df(x, df1 = 4, df2 = 20), size = 1) + 
+    geom_vline(aes(xintercept = 3.5),
+               color = "#548B54", linetype = "dashed", size = 1) + 
+    annotate("text", x = 3.9, y = 0.05, label = paste("F == ", 3.5), 
+             size = 5, col = "#548B54", parse = T) +
+    geom_vline(aes(xintercept = F95),
+               color = "#8B0000", linetype = "dashed", size = 1) +
+    annotate("text", x = 3.1, y = 0.1, label = paste("alpha == ", 0.05), 
+             size = 5, col = "#8B0000", parse = T) + 
+    geom_vline(aes(xintercept = F99),
+               color = "#00688B", linetype = "dashed", size = 1) +
+    annotate("text", x = 5, y = 0.030, label = paste("alpha == ", 0.01), 
+             size = 5, col = "#00688B", parse = T) + 
+    labs(title ="Función de densidad ~ F(4,20)", x = "x", y = "f(x)") + 
+    theme.b5.basic
+@
+
+\noindent Por lo que para una significancia del $95\%$ tenemos evidencia para rechazar la hipótesis nula de igualdad de medias ($F_0 = 3.5 >  F_{4,20}^{0.05} = 2.866$), mientras que para una significancia del $99\%$ no tenemos evidencia para rechazar la hipótesis nula de igualdad de medias ($F_0 = 3.5 <  F_{4,20}^{0.01} = 4.431$).
+
 
 \newpage
 \textbf{Problema 5}
 Los siguiente datos muestran las medidas de hemoglobina (gramos por 100ml) en la sangre de 40 ejemplares de una especie de truchas marrones. Las truchas se haían dividido al azar en cuatro grupos de 10 y cada grupo se había asignado, también al azar, a un criadero de cuatro diferentes. En cada criadero se añadía a la dieta de los peces una cantidad distinta de sulfamerazina por cada cien libras de comida. En concreto: 0, 5, 10 y 15 gramos. Las mediciones de hemoglobina se tomaron después de 35 días.
+
+\begin{table}[h!]
+\centering
+\begin{tabular}[t]{|c|c|}
+\hline
+\textbf{Sulfametazina }(g/libras de comida)&\textbf{Hemoglobina en sangre} (g/100 ml)\\ 
+\hline
+\textbf{0}&6.7,  7.8,  5.5,  8.4,  7.0,  7.8,  8.6,  7.4,  5.8,  7.0\\
+\hline
+\textbf{5}&9.9,  8.4, 10.4,  9.3,  10.7  ,11.9 , 7.1,  6.4,  8.6,  10.6\\
+\hline
+\textbf{10}&10.4,  8.1, 10.6 , 8.7,  10.7,  9.1,  8.8 , 8.1,  7.8,  8.0\\
+\hline
+\textbf{15}&9.9,  9.3 , 7.2 , 7.8 , 9.3,  10.2 , 8.7,  8.6, 9.3,  7.2 \\
+\hline
+\end{tabular}
+\end{table}
 
 Se pide que:
 
@@ -278,8 +350,16 @@ Se pide que:
   \item Elabore el modelo de diseño de experimentos correspondiente, haciendo explícitos los elementos que lo componen (variable respuesta, factores, supuestos, unidad experimental, ... etc.)
 \end{itemize}
 
+\noindent\emph{Diseño}: Diseño completamente al azar\\
+\emph{Variable respuesta}: Concentración de hemoglobina (gramos por 100 ml)\\
+\emph{Unidad experimental}: Trucha marrón\\
+\emph{Factor(es)}: Concentración de sulfamerazina\\
+\emph{Niveles}: 4 niveles de concetración de sulfamerazina (0, 5, 10, 15 g/100 lb comida)\\
+
+\noindent Lo anterior supone homogeneidad en las truchas al igual que las condiciones de cada criadero.
+
 \begin{itemize}
-  \item Elabore la gráfica de caja tratamientos-hemgoglobina, analícela y determine si existe evidencia visual para determinar la igualdad de medias de los tratamientos.
+  \item Elabore la gráfica de caja tratamientos-hemoglobina, analícela y determine si existe evidencia visual para determinar la igualdad de medias de los tratamientos.
 \end{itemize}
 
 <<echo=FALSE, fig.height=4, fig.width=5, fig.align='center'>>=
@@ -291,24 +371,115 @@ trat <- c(rep(0, 10), rep(5, 10), rep(10, 10), rep(15,10))
 trat <- as.factor(trat)
 peces <- data.frame(trat,hemo)
 # Gráficamos un boxplot de los datos
-myBoxplot(peces, "trat", "hemo", "Boxplot por tratamiento")
+myBoxplot(peces, "trat", "hemo", "Boxplot: tratamientos~hemoglobina", 
+          xlab = "Sulfametazina en comida (g/100 lb)",
+          ylab = "Concentración de hemoglobina (g/100ml)")
 @
+
+\noindent Dada la gráfica anterior podemos observar que la media en la medición de concentración de hemoglobina del grupo control (0 g de sulfametazina) es menor a la de los demás grupos, de los cuales el de 10g y 15g de sulfametazina parecen similares y el de 5g es mayor pero con una varianza mayor al de todos los grupos, por lo que no podemos determinar que hay algún efecto de los tratamientos.
 
 \begin{itemize}
   \item Construya la tabla ANOVA, analícela y concluya ($\alpha = 0.05$)
 \end{itemize}
+<<>>=
+# Creamos un pequeña funciòn para calcular la tabla ANOVA
+myANDEVA <- function(n, t, data, value, factor) {
+    # Crea la tabla de análisis de varianza
+    # n: Tamaño de la muestra
+    # t: Número de tratamientos
+    # data: Data.frame con los datos
+    # value: Variable respuesta
+    # factor: Variable que indica el factor
+    
+    # Calculamos la media general
+    mu <- mean(data[, value])
+    # Calculamos la suma de los errores del modelo reducido
+    SSE_r <- sum((data[, value] - mu)**2)
+    # Ahora calculamos la suma de los errores del modelo completo
+    SSE_c <- sum(
+        unlist(
+            lapply(
+                split(data, data[, factor]), 
+                function(x) sum((x[, value] - mean(x[, value]))**2))))
+    # Calculamos la suma de los errores por tratamiento
+    SS_t <- SSE_r - SSE_c
+    # Calculamos la suma de los errores totales
+    SS_total <- SS_t + SSE_c
+    # Calculamos la suma de los errores entre sus grados de libertad
+    CM_t <- SS_t / (t - 1)
+    CME <- SSE_c / (n - t)
+    # Claculamos el estadístico de prueba F_0
+    F_0 <- CM_t / CME
+    # Ahora el p-value
+    p_val <- pf(F_0, t - 1, n - t, lower.tail = FALSE)
+    # Ahora creamos la tabla
+    gl <- c(t - 1, n - t, n - 1)
+    SS <- round(c(SS_t, SSE_c, SS_total), digits = 2)
+    CM <- c(round(CM_t, digits = 2), round(CME, digits = 2), "")
+    F_value <- c(round(F_0, digits = 2), "", "")
+    p_value <- c(round(p_val, digits = 4), "", "")
+    andeva <- data.frame(gl, SS, CM, F_value, p_value)
+    # Nombramos a las columnas y renglones
+    colnames(andeva) <- c("g.l.", "S.S.", "C.M.", "F", "p-value")
+    rownames(andeva) <- c("Tratamientos", "Error", "Total")
+    andeva
+}
+myANDEVA(n = 40, t = 4, data = peces, value = "hemo", factor = "trat")
+# O ajustando el modelo
+pecesMod <- lm(hemo ~ trat, data = peces)
+anova(pecesMod)
+@
+
+Entonce considerando una significancia del $5\%$ tenemos evidencia para rechazar la hipótesis nula de igualdad de medias, es decir, lo que podemos decir es que el promedio de concentración de hemoglobina difiere en almenos un tratamiento.
+
 
 \begin{itemize}
   \item Determine qué tratamientos tienen efectos estadísticamente iguales
 \end{itemize}
 
+Un forma sería realizar una prueba de diferencia de medias para cada una de los tratamientos pero esto provoca que la significancia global sea mayor a la significancia de cada prueba. Entonces una solución bajo el supuesto de \emph´{homocedasticidad} es usar el critero de Tukey. La idea es establecer un umbral, se calculan todas las diferencias de de medias muestrales entre los t niveles del factor estudiado. Las diferencias que estén por encima de ese umbral se consideran diferencias significativas, las que no lo estén se considerán diferencias no significativas.
+
+<<>>=
+# Prueba de Tukey
+tukey <- TukeyHSD(aov(pecesMod), conf.level = 0.95); tukey 
+@
+
+\noindent Por lo qué lo que observamos diferencias significativas ($\alpha = 0.05$) del grupo control con demás tratamientos y entre los demás tratamientos no observamos una diferencia significativa. Gráficamente podemos ver los intervalos de confianza.
+
+<<echo=FALSE, fig.height=4, fig.width=5, fig.align='center'>>=
+plot(tukey)
+@
+
+
 \begin{itemize}
   \item Construya las gráficas de los residuos necesarias para verificar los supuestos de homocedasticidad y normalidad. Utilice la prueba de Bartlett para verificar el supuesto de homogeneidad de varianzas 
 \end{itemize}
 
+<<echo=FALSE, fig.height=4, fig.width=5, fig.align='center'>>=
+# QQPlot
+ggqnorm(pecesMod)
+# Gráfica de residuales
+e <- pecesMod$residuals
+ggplot(data = data.frame(x = peces$trat, y = e), aes(x = x, y = y)) + 
+    geom_point(colour = "#00688B", size = 3) + 
+    labs(title = "Residuales", x = "x", y = "residual") +
+    theme.b5.basic
+@
+
+\noindent Vemos como siendo estrictos, parece tener colas pesadas la distribución muestral comparadas con la de una normal, y en el caso de los residuales el tratamiento control parece tener una varianza mayor a los demás tratamientos. Ahora veamos las pruebas.
+
+<<>>=
+#Prueba de normalidad Anderson-Darling
+ad.test(pecesMod$res)
+#Prueba de bartlett
+bartlett.test(pecesMod$res, peces$trat)
+@
+
+\noindent Entonces bajo la hipótesis nula de normalidad de los residuales no tenemos evidencia para rechazarla a un nivel de significancia del $5\%$ ($p-value = 0.5241 > 0.05$), análogamente bajo la hipóteis nula de homocedasticidad no tenemos evidencia para rechazar a un nivel de significancia del $5\%$ ($p-value = 0.3384 > 0.05$)
+
 \newpage
 \textbf{Problema 6}
-Un estudio veterinario busca determinar si el sexo tiene efecto en ele peso de los perros, para este estudio se cuenta con lote de 20 perros schnauzer adultos con los siguientes datos:
+Un estudio veterinario busca determinar si el sexo tiene efecto en el peso de los perros, para este estudio se cuenta con lote de 20 perros schnauzer adultos con los siguientes datos:
 
 
 Se pide que:
@@ -317,8 +488,15 @@ Se pide que:
   \item Elabore el modelo de diseño de experimentos correspondiente, haciendo explicítos los elementos que lo componen (variable respuesta, factores, supuestos, unidad experimental, ..., etc.)
 \end{item}
 
+\noindent\emph{Variable respuesta}: Peso del perro (kg)\\
+\emph{Unidad experimental}: Perro\\
+\emph{Factor(es)}: Sexo del perro\\
+\emph{Niveles}: 2 niveles (macho o hembra)\\
+
+\noindent Además debemos suponer que los perros son homogeneos, lo cuál involucra que se consideren similares en el rango de edad, dieta, raza, y que esten sanos. También contemplar un muestreo adecuado para considerar representatividad.
+
 \begin{itemize}
-  \item Elaborela gráfica de tratamientos-peso, analícela y determine si existe evidencia visual para determinar la igualda de los tratamientos
+  \item Elabore la gráfica de tratamientos-peso, analícela y determine si existe evidencia visual para determinar la igualda de los tratamientos
 \end{item}
 
 <<echo=FALSE, fig.height=4, fig.width=5, fig.align='center'>>=
@@ -328,20 +506,57 @@ peso <- c(9.632, 9.086, 8.67, 8.51, 9.084, 8.797, 9.188, 9.215, 9.099,
 perros <- data.frame(sexo = factor(rep(c("Macho","Hembra"),
                                        each = 10)), peso)
 # Gráficamos un boxplot de los datos
-myBoxplot(perros, "sexo", "peso", "Boxplot por sexo")
+myBoxplot(perros, "sexo", "peso", "Boxplot: peso~sexo",
+          xlab = "Sexo",
+          ylab = "Peso (kg)")
 @
+
+Apartir del gráfico podemos ver que en promedio el peso de los perros machos es mayor al de las hembras, además de tener un variabilidad mayor el peso de los machos.
 
 \begin{itemize}
   \item Construya la tabla ANOVA, analícela y concluya ($\alpha = 0.05$)
 \end{itemize}
 
+<<>>=
+myANDEVA(n = 20, t = 2, data = perros, value = "peso", factor = "sexo")
+# O ajustando el modelo
+perrosMod <- lm(peso ~ sexo, data = perros)
+anova(perrosMod)
+@
+
+\noindent Entonces con una significancia del $5\%$ rechazamos la hipótesis nula de igualda de medias ($p-value = 3.5e-05 < 0.05$). Lo cuál reafirma lo que observamos con el boxplot.
+
 \begin{itemize}
   \item Determine qué tratamientos tienen efectos estadísticamente iguales
 \end{itemize}
 
+\noindent Dado que en este caso sólo tenemos dos tratamientos y lo anterior, podemos decir que con una significancia del $5\%$ el promedio del peso de los machos es mayor al de las hembras.\\
+
 \begin{itemize}
   \item Construya las gráficas de los residuos necesarias para verificar los supuestos de homocedasticidad y normalidad. Utilice la prueba de Bartlett para verificar el supuesto de homogeneidad de varianzas 
 \end{itemize}
+
+<<echo=FALSE, fig.height=4, fig.width=5, fig.align='center'>>=
+# QQPlot
+ggqnorm(perrosMod)
+# Gráfica de residuales
+e <- perrosMod$residuals
+ggplot(data = data.frame(x = perros$sexo, y = e), aes(x = x, y = y)) + 
+    geom_point(colour = "#00688B", size = 3) + 
+    labs(title = "Residuales", x = "x", y = "residual") +
+    theme.b5.basic
+@
+
+\noindent Vemos como siendo estrictos, parece que en las colas la distribución muestral no se parece a una normal, y en el caso de los residuales el peso en los machos parece tener una varianza similar al de las hembras. Ahora veamos las pruebas.
+
+<<>>=
+#Prueba de normalidad Anderson-Darling
+ad.test(perrosMod$res)
+#Prueba de bartlett
+bartlett.test(perrosMod$res, perros$sexo)
+@
+
+\noindent Entonces bajo la hipótesis nula de normalidad de los residuales no tenemos evidencia para rechazarla a un nivel de significancia del $5\%$ ($p-value =  0.1265 > 0.05$), análogamente bajo la hipóteis nula de homocedasticidad no tenemos evidencia para rechazar a un nivel de significancia del $5\%$ ($p-value =  0.5702 > 0.05$)
 
 \newpage
 \textbf{Problema 7}
@@ -353,20 +568,91 @@ Se pide que:
   \item Elabore el modelo de diseño de experimentos correspondiente, haciendo explicítos los elementos que lo componen (variable respuesta, factores, supuestos, unidad experimental, ..., etc.)
 \end{item}
 
+<<>>=
+str(KenyaFinches)
+# Veamos una mestra de la base
+sample(KenyaFinches, 6)[, -4]
+# Observamos el número de observaciones por pinzón
+table(KenyaFinches$species)
+@
+
+\noindent Esta base de datos considera información sobre el peso y longitud del pico de tres especies de pinzones. Y porn lo anterior vemos que se trata de un diseño desbalanceado.
+
+\noindent\emph{Variable respuesta}: Peso y longitud del pico.
+\emph{Unidad experimental}: Pinzón
+\emph{Factor(es)}: 3 especie del pinzón (denotadas por: CRU.WAXB, CUTTHROA y WB.SPARW)
+
+
 \begin{itemize}
-  \item Elaborela gráfica de tratamientos-peso, analícela y determine si existe evidencia visual para determinar la igualda de los tratamientos
+  \item Elabore la gráfica de tratamientos-longitud, analícela y determine si existe evidencia visual para determinar la igualda de los tratamientos
 \end{item}
+
+<<echo=FALSE, fig.height=4, fig.width=5, fig.align='center'>>=
+# Gráficamos un boxplot de los datos
+myBoxplot(KenyaFinches, "species", "beak.length", 
+          "Boxplot: pico~especie",
+          xlab = "Especie",
+          ylab = "Longitud pico (mm)")
+@
+
+\noindent Por el boxplot podemos observar que la longitud del pico de las especies CRU.WAXB y CUTTHROA son algo similares entre si pero difieren de la especie WB.SPARW.
 
 \begin{itemize}
   \item Construya la tabla ANOVA, analícela y concluya ($\alpha = 0.05$)
 \end{itemize}
 
+<<>>=
+myANDEVA(n = 45, t = 3, data = KenyaFinches, 
+         value = "beak.length", factor = "species")
+# O ajustando el modelo
+pinzonMod <- lm(beak.length ~ species, data = KenyaFinches)
+anova(pinzonMod)
+@
+
+\noindent Por lo que con una significancia del $5\%$ tenemos evidencia para rechaza la hipótesis nula de igualdad de medias ($p-value = 2.2e-16 < 0.05$), es decir que al menos una de las especies difiere en el promedio de la longitud de su pico con respecto a las otras.
+
 \begin{itemize}
   \item Determine qué tratamientos tienen efectos estadísticamente iguales
 \end{itemize}
 
+\noindent Para esto usaremos la prueba de Tukey:
+
+<<>>=
+# Prueba de Tukey
+tukey <- TukeyHSD(aov(pinzonMod), conf.level = 0.95); tukey
+@
+
+\noindent Por lo qué lo que observamos diferencias significativas ($\alpha = 0.05$) entre las distintas especies. Gráficamente podemos ver los intervalos de confianza.
+
+<<echo=FALSE, fig.height=4, fig.width=5, fig.align='center'>>=
+plot(tukey)
+@
+
 \begin{itemize}
   \item Construya las gráficas de los residuos necesarias para verificar los supuestos de homocedasticidad y normalidad. Utilice la prueba de Bartlett para verificar el supuesto de homogeneidad de varianzas 
 \end{itemize}
+
+<<echo=FALSE, fig.height=4, fig.width=5, fig.align='center'>>=
+# QQPlot
+ggqnorm(pinzonMod)
+# Gráfica de residuales
+e <- pinzonMod$residuals
+ggplot(data = data.frame(x = KenyaFinches$species, y = e), 
+       aes(x = x, y = y)) + 
+    geom_point(colour = "#00688B", size = 3) + 
+    labs(title = "Residuales", x = "x", y = "residual") +
+    theme.b5.basic
+@
+
+\noindent Vemos que parece que no se debe rechazar la hipótesis de normalidad de los datos, y en el caso de los residuales tampoco parece haber motivos para rechazar la hipótesis de homocedasticidad. Ahora veamos las pruebas.
+
+<<>>=
+#Prueba de normalidad Anderson-Darling
+ad.test(pinzonMod$res)
+#Prueba de bartlett
+bartlett.test(pinzonMod$res, KenyaFinches$species)
+@
+
+\noindent Entonces bajo la hipótesis nula de normalidad de los residuales no tenemos evidencia para rechazarla a un nivel de significancia del $5\%$ ($p-value = 0.5719 > 0.05$), análogamente bajo la hipóteis nula de homocedasticidad no tenemos evidencia para rechazar a un nivel de significancia del $5\%$ ($p-value = 0.9441 > 0.05$)
 
 \end{document}
